@@ -7,12 +7,37 @@
 chrome.browserAction.onClicked.addListener(function(tab) {
   // No tabs or host permissions needed!
 
-  var text;
+  var command
   function get_headers () {
+	//console.log(req.readyState);
+	if(req.readyState == 4)
+	{
+		return;
+	}
   	var headers = req.getAllResponseHeaders().toLowerCase();
-        console.log(headers);
-	console.log(req.responseURL);
-	text = req.responseURL;
+        //console.log(headers);
+	//console.log(req.responseURL);
+	var text = req.responseURL;
+	if(text.length < 2)
+	{
+		return;
+	}
+	var res = text.split("/");
+	text = res[res.length-1]
+	res = text.split("(");
+	text = res[0];
+	text = decodeURIComponent(text);
+	text = "#".concat(text.replace(/[\W_]+/g,""));
+	command = 'document.execCommand("insertHTML", true, "'.concat(text, '");');
+	//console.log(text);
+	//console.log(command);
+	
+	chrome.tabs.executeScript({
+//    code: 'document.body.style.backgroundColor="red"'
+//     code: 'document.execCommand("insertHTML", false, ' + text + ')'
+		code: command
+  	});
+
   }	
 
 //  console.log('Turning ' + tab.url + ' red!');
@@ -22,8 +47,4 @@ chrome.browserAction.onClicked.addListener(function(tab) {
   req.send();
   
 
-  chrome.tabs.executeScript({
-//    code: 'document.body.style.backgroundColor="red"'
-     code: 'document.execCommand("insertHTML", false, ' + text + ')'
-  })
 });
